@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Session Test</title>
+</head>
+<body>
+    <h1>Session Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+    async function debugSession() {
+        const results = document.getElementById('results');
+        results.innerHTML = '<p>Testing session...</p>';
+        
+        try {
+            console.log('🔍 Starting session debug...');
+            
+            // 1. Check cookies
+            console.log('📍 Document cookies:', document.cookie);
+            const cookies = document.cookie.split(';');
+            const sessionCookie = cookies.find(cookie => cookie.trim().startsWith('session-token='));
+            console.log('🍪 Session cookie found:', !!sessionCookie);
+            
+            if (sessionCookie) {
+                const tokenValue = sessionCookie.split('=')[1];
+                console.log('🔑 Token (first 50 chars):', tokenValue.substring(0, 50) + '...');
+            }
+            
+            // 2. Test session validation API
+            console.log('🔍 Testing session validation API...');
+            const response = await fetch('/api/test-session');
+            const sessionData = await response.json();
+            console.log('📡 API Response:', sessionData);
+            
+            // 3. Check dashboard page directly
+            console.log('🔍 Testing dashboard page...');
+            const dashResponse = await fetch('/dashboard');
+            const dashText = await dashResponse.text();
+            console.log('📄 Dashboard response length:', dashText.length);
+            console.log('📄 Contains "Loading session":', dashText.includes('Loading session'));
+            console.log('📄 Contains user data:', dashText.includes('"name":"Zack"'));
+            
+            // Update UI
+            results.innerHTML = `
+                <h2>Debug Results:</h2>
+                <p><strong>Session Cookie:</strong> ${sessionCookie ? 'Found' : 'Not Found'}</p>
+                <p><strong>API Validation:</strong> ${sessionData.success ? 'Valid' : 'Invalid'}</p>
+                <p><strong>User Name:</strong> ${sessionData.debug?.customSession?.name || 'Not found'}</p>
+                <p><strong>Dashboard Status:</strong> ${dashText.includes('Loading session') ? 'Still Loading' : 'Loaded'}</p>
+                <p><strong>User Data in Dashboard:</strong> ${dashText.includes('"name":"Zack"') ? 'Found' : 'Not Found'}</p>
+                
+                <h3>Raw API Response:</h3>
+                <pre>${JSON.stringify(sessionData, null, 2)}</pre>
+            `;
+            
+        } catch (error) {
+            console.error('❌ Debug error:', error);
+            results.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+    
+    // Run debug when page loads
+    debugSession();
+    </script>
+</body>
+</html>

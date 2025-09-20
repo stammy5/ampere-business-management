@@ -1,0 +1,12 @@
+Generated Ampere Engineering Logo: https://cdn.abacus.ai/images/6810c83b-3e94-4faa-8215-5ddf5f15c4bc.png
+Generated PEB Logo: https://cdn.abacus.ai/images/5234237d-c384-41cf-97ee-f63b3a9fbb97.png
+Generated BCA Logo: https://cdn.abacus.ai/images/f25db49f-a4c8-4768-9518-1fc20fdb4198.png
+
+Downloaded Official Logos:
+-rw-r--r-- 1 ubuntu ubuntu  18737 Sep 18 05:48 bca_logo_alt.png
+-rw-r--r-- 1 ubuntu ubuntu  46467 Sep 18 05:48 bca_registered_contractor.png
+-rw-r--r-- 1 ubuntu ubuntu  46467 Sep 18 05:48 bca_registered_contractor_official.png
+-rw-r--r-- 1 ubuntu ubuntu 397925 Sep 18 05:48 ies_singapore_logo.png
+-rw-r--r-- 1 ubuntu ubuntu 397925 Sep 18 05:48 ies_singapore_official.png
+-rw-r--r-- 1 ubuntu ubuntu  24363 Sep 18 05:48 peb_logo.png
+-rw-r--r-- 1 ubuntu ubuntu  24363 Sep 18 05:48 peb_official_logo.png

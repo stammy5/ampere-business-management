@@ -1,0 +1,2486 @@
+
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  console.log('🌱 Starting database seeding...')
+
+  // Clean existing data in development
+  await prisma.auditLog.deleteMany()
+  // Financial data cleanup (order is important due to foreign key constraints)
+  await prisma.xeroSyncLog.deleteMany()
+  await prisma.payment.deleteMany()
+  await prisma.vendorInvoiceActivity.deleteMany()
+  await prisma.vendorInvoiceItem.deleteMany()
+  await prisma.vendorInvoice.deleteMany()
+  await prisma.clientInvoiceItem.deleteMany()
+  await prisma.clientInvoice.deleteMany()
+  await prisma.purchaseOrderActivity.deleteMany()
+  await prisma.purchaseOrderItem.deleteMany()
+  await prisma.purchaseOrder.deleteMany()
+  await prisma.legacyInvoice.deleteMany()
+  // Business data cleanup
+  await prisma.quotationActivity.deleteMany()
+  await prisma.quotationApproval.deleteMany()
+  await prisma.quotationTemplate.deleteMany()
+  await prisma.quotationItem.deleteMany()
+  await prisma.quotation.deleteMany()
+  await prisma.tenderActivity.deleteMany()
+  await prisma.tender.deleteMany()
+  await prisma.vendorContract.deleteMany()
+  await prisma.projectVendor.deleteMany()
+  await prisma.document.deleteMany()
+  await prisma.project.deleteMany()
+  await prisma.vendor.deleteMany()
+  await prisma.client.deleteMany()
+  // Authentication data cleanup
+  await prisma.account.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.user.deleteMany()
+
+  console.log('🧹 Cleaned existing data')
+
+  // Create Super Admin accounts
+  const zackPassword = await bcrypt.hash('Czl914816', 12)
+  const endyPassword = await bcrypt.hash('Endy548930', 12)
+  const defaultPassword = await bcrypt.hash('password123', 12)
+
+  // SuperAdmin User - Zack
+  const superAdmin = await prisma.user.create({
+    data: {
+      email: 'zack@ampere.engineering',
+      password: zackPassword,
+      firstName: 'Zack',
+      lastName: 'Admin',
+      name: 'Zack',
+      role: 'SUPERADMIN',
+      companyName: 'Ampere Engineering Pte Ltd',
+      isActive: true,
+    },
+  })
+
+  // SuperAdmin User - Endy
+  const superAdmin2 = await prisma.user.create({
+    data: {
+      email: 'endy@ampere.engineering',
+      password: endyPassword,
+      firstName: 'Endy',
+      lastName: 'Admin',
+      name: 'Endy',
+      role: 'SUPERADMIN',
+      companyName: 'Ampere Engineering Pte Ltd',
+      isActive: true,
+    },
+  })
+
+  // Project Manager User  
+  const projectManager = await prisma.user.create({
+    data: {
+      email: 'pm@ampere.engineering',
+      password: defaultPassword,
+      firstName: 'Project',
+      lastName: 'Manager',
+      name: 'Project Manager',
+      role: 'PROJECT_MANAGER',
+      companyName: 'Ampere Engineering Pte Ltd',
+      isActive: true,
+    },
+  })
+
+  // Finance User
+  const financeUser = await prisma.user.create({
+    data: {
+      email: 'finance@ampere.engineering',
+      password: defaultPassword,
+      firstName: 'Finance',
+      lastName: 'Team',
+      name: 'Finance Team',
+      role: 'FINANCE',
+      companyName: 'Ampere Engineering Pte Ltd',
+      isActive: true,
+    },
+  })
+
+  console.log('👥 Created test users')
+
+  console.log('🎉 Database seeding completed successfully!')
+  console.log('\n📋 Test Accounts Created:')
+    prisma.client.create({
+      data: {
+        name: 'Tech Innovation Pte Ltd',
+        email: 'contact@techinnovation.sg',
+        phone: '+65 6123 4567',
+        address: '123 Innovation Drive',
+        city: 'Singapore',
+        state: 'Singapore',
+        country: 'Singapore',
+        postalCode: '138632',
+        contactPerson: 'John Chen',
+        companyReg: 'UEN123456789A',
+        website: 'https://techinnovation.sg',
+        notes: 'Leading tech company specializing in IoT solutions',
+        createdById: superAdmin.id,
+      },
+    }),
+    prisma.client.create({
+      data: {
+        name: 'Green Energy Solutions',
+        email: 'info@greenenergy.com.sg',
+        phone: '+65 6789 1234',
+        address: '456 Sustainable Street',
+        city: 'Singapore',
+        state: 'Singapore',
+        country: 'Singapore',
+        postalCode: '179103',
+        contactPerson: 'Sarah Lim',
+        companyReg: 'UEN987654321B',
+        website: 'https://greenenergy.com.sg',
+        notes: 'Renewable energy systems and consulting',
+        createdById: projectManager.id,
+      },
+    }),
+    prisma.client.create({
+      data: {
+        name: 'Smart Manufacturing Ltd',
+        email: 'projects@smartmanufacturing.sg',
+        phone: '+65 6456 7890',
+        address: '789 Industrial Park Road',
+        city: 'Singapore',
+        state: 'Singapore',
+        country: 'Singapore',
+        postalCode: '628123',
+        contactPerson: 'Michael Wong',
+        companyReg: 'UEN456789123C',
+        website: 'https://smartmanufacturing.sg',
+        notes: 'Industry 4.0 automation solutions',
+        createdById: projectManager.id,
+      },
+    }),
+  ])
+
+  console.log('🏢 Created sample clients')
+
+  // Create sample projects
+  const projects = await Promise.all([
+    prisma.project.create({
+      data: {
+        projectNumber: 'PRJ-2024-001',
+        name: 'Smart Building IoT Implementation',
+        description: 'Complete IoT sensor network installation for intelligent building management system including HVAC optimization and energy monitoring.',
+        projectType: 'REGULAR',
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        startDate: new Date('2024-01-15'),
+        endDate: new Date('2024-06-30'),
+        estimatedBudget: 250000,
+        actualCost: 180000,
+        progress: 75,
+        clientId: clients[0].id,
+        managerId: projectManager.id,
+        createdById: superAdmin.id,
+      },
+    }),
+    prisma.project.create({
+      data: {
+        projectNumber: 'PRJ-2024-002',
+        name: 'Solar Panel Installation System',
+        description: 'Design and installation of 500kW solar panel system with battery storage and grid integration for sustainable energy solution.',
+        projectType: 'REGULAR',
+        status: 'PLANNING',
+        priority: 'MEDIUM',
+        startDate: new Date('2024-03-01'),
+        endDate: new Date('2024-08-15'),
+        estimatedBudget: 800000,
+        actualCost: 50000,
+        progress: 25,
+        clientId: clients[1].id,
+        managerId: projectManager.id,
+        createdById: projectManager.id,
+      },
+    }),
+    prisma.project.create({
+      data: {
+        projectNumber: 'PRJ-2023-001',
+        name: 'Factory Automation Upgrade',
+        description: 'Modernization of manufacturing line with robotic systems, AI-powered quality control, and predictive maintenance solutions.',
+        projectType: 'REGULAR',
+        status: 'COMPLETED',
+        priority: 'URGENT',
+        startDate: new Date('2023-09-01'),
+        endDate: new Date('2024-02-29'),
+        estimatedBudget: 1200000,
+        actualCost: 1150000,
+        progress: 100,
+        clientId: clients[2].id,
+        managerId: projectManager.id,
+        createdById: superAdmin.id,
+      },
+    }),
+    prisma.project.create({
+      data: {
+        projectNumber: 'PRJ-2024-003',
+        name: 'Digital Twin Development',
+        description: 'Development of digital twin platform for real-time monitoring and simulation of industrial processes.',
+        projectType: 'REGULAR',
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        startDate: new Date('2024-02-01'),
+        endDate: new Date('2024-07-31'),
+        estimatedBudget: 450000,
+        actualCost: 200000,
+        progress: 45,
+        clientId: clients[0].id,
+        managerId: projectManager.id,
+        createdById: projectManager.id,
+      },
+    }),
+    prisma.project.create({
+      data: {
+        projectNumber: 'MNT-2024-001',
+        name: 'HVAC System Maintenance',
+        description: 'Regular maintenance and inspection of HVAC systems across corporate building.',
+        projectType: 'MAINTENANCE',
+        status: 'PLANNING',
+        priority: 'MEDIUM',
+        startDate: new Date('2024-04-01'),
+        endDate: new Date('2024-04-15'),
+        estimatedBudget: 15000,
+        actualCost: 0,
+        progress: 0,
+        clientId: clients[1].id,
+        managerId: projectManager.id,
+        createdById: projectManager.id,
+      },
+    }),
+    prisma.project.create({
+      data: {
+        projectNumber: 'MNT-2024-002',
+        name: 'Network Infrastructure Check',
+        description: 'Quarterly network infrastructure inspection and minor repairs.',
+        projectType: 'MAINTENANCE',
+        status: 'COMPLETED',
+        priority: 'LOW',
+        startDate: new Date('2024-01-05'),
+        endDate: new Date('2024-01-10'),
+        estimatedBudget: 8000,
+        actualCost: 7500,
+        progress: 100,
+        clientId: clients[2].id,
+        managerId: projectManager.id,
+        createdById: superAdmin.id,
+      },
+    }),
+  ])
+
+  console.log('🚧 Created sample projects')
+
+  // Create project-vendor relationships
+  const projectVendors = await Promise.all([
+    prisma.projectVendor.create({
+      data: {
+        projectId: projects[0].id, // Smart Building IoT Implementation
+        vendorId: vendors[0].id,   // TechSupply Pte Ltd
+        role: 'IoT Hardware Supplier',
+        startDate: new Date('2024-01-15'),
+        endDate: new Date('2024-06-30'),
+        contractValue: 85000,
+        status: 'ACTIVE',
+      },
+    }),
+    prisma.projectVendor.create({
+      data: {
+        projectId: projects[2].id, // Factory Automation Upgrade
+        vendorId: vendors[1].id,   // BuildMax Construction
+        role: 'Main Contractor',
+        startDate: new Date('2023-09-01'),
+        endDate: new Date('2024-02-29'),
+        contractValue: 150000,
+        status: 'COMPLETED',
+      },
+    }),
+    prisma.projectVendor.create({
+      data: {
+        projectId: projects[1].id, // Solar Panel Installation System
+        vendorId: vendors[2].id,   // Engineering Consultants Ltd
+        role: 'Design Consultant',
+        startDate: new Date('2024-03-01'),
+        contractValue: 35000,
+        status: 'ASSIGNED',
+      },
+    }),
+  ])
+
+  console.log('🤝 Created project-vendor relationships')
+
+
+
+  // Create sample tenders
+  const tenders = await Promise.all([
+    prisma.tender.create({
+      data: {
+        title: 'Smart City Infrastructure Project',
+        tenderNumber: 'TND-2024-001',
+        description: 'Implementation of IoT sensors and smart lighting across Marina Bay district. This comprehensive project includes installation, configuration, and maintenance of smart city infrastructure.',
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        estimatedValue: 2500000,
+        submissionDeadline: new Date('2024-04-15T23:59:00Z'),
+        openDate: new Date('2024-03-01T08:00:00Z'),
+        status: 'OPEN',
+        priority: 'HIGH',
+        category: 'ENGINEERING',
+        requirements: 'ISO 9001 certification required, minimum 5 years experience in IoT implementation, local presence in Singapore',
+        contactPerson: 'David Lee',
+        contactEmail: 'david.lee@ura.gov.sg',
+        contactPhone: '+65 6321 8765',
+        location: 'Marina Bay, Singapore',
+        createdById: projectManager.id,
+        assignedToId: projectManager.id,
+      },
+    }),
+    prisma.tender.create({
+      data: {
+        title: 'Hospital HVAC System Upgrade',
+        tenderNumber: 'TND-2024-002',
+        description: 'Complete replacement of HVAC systems across 3 hospital blocks with energy-efficient solutions and 24/7 monitoring capabilities.',
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        estimatedValue: 1800000,
+        submissionDeadline: new Date('2024-03-20T17:00:00Z'),
+        openDate: new Date('2024-02-15T09:00:00Z'),
+        status: 'SUBMITTED',
+        priority: 'URGENT',
+        category: 'INSTALLATION',
+        requirements: 'Healthcare facility experience mandatory, BCA GREEN certification preferred, 24/7 emergency support capability',
+        contactPerson: 'Dr. Sarah Tan',
+        contactEmail: 'sarah.tan@sgh.com.sg',
+        contactPhone: '+65 6222 3311',
+        location: 'Singapore General Hospital',
+        createdById: superAdmin.id,
+        assignedToId: financeUser.id,
+      },
+    }),
+    prisma.tender.create({
+      data: {
+        title: 'Industrial Automation Consulting',
+        tenderNumber: 'TND-2024-003',
+        description: 'Process optimization and automation design for manufacturing facility including PLC programming and SCADA implementation.',
+        clientId: clients[2].id, // Global Logistics Ltd
+        estimatedValue: 450000,
+        submissionDeadline: new Date('2024-05-10T16:00:00Z'),
+        openDate: new Date('2024-03-10T10:00:00Z'),
+        status: 'WON',
+        priority: 'MEDIUM',
+        category: 'CONSULTING',
+        requirements: 'Certified automation engineers, Siemens and Allen-Bradley experience, lean manufacturing knowledge',
+        contactPerson: 'John Chen',
+        contactEmail: 'john.chen@techmanufacturing.sg',
+        contactPhone: '+65 6543 2109',
+        location: 'Jurong Industrial Estate',
+        createdById: projectManager.id,
+        assignedToId: projectManager.id,
+      },
+    }),
+    prisma.tender.create({
+      data: {
+        title: 'Solar Panel Installation',
+        tenderNumber: 'TND-2024-004',
+        description: '200kW solar installation for office complex rooftops with grid-tie system and monitoring dashboard.',
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        estimatedValue: 320000,
+        submissionDeadline: new Date('2024-02-28T18:00:00Z'),
+        openDate: new Date('2024-01-15T08:00:00Z'),
+        status: 'LOST',
+        priority: 'LOW',
+        category: 'INSTALLATION',
+        requirements: 'PV installer license, minimum 1MW completed projects, 10-year warranty on installation',
+        contactPerson: 'Lisa Wong',
+        contactEmail: 'lisa.wong@greenbuilding.sg',
+        contactPhone: '+65 6789 4321',
+        location: 'Raffles Place',
+        createdById: financeUser.id,
+        assignedToId: financeUser.id,
+      },
+    }),
+    prisma.tender.create({
+      data: {
+        title: 'Factory Equipment Supply',
+        tenderNumber: 'TND-2024-005',
+        description: 'Supply of specialized manufacturing equipment including CNC machines, robotic arms, and quality control systems.',
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        estimatedValue: 850000,
+        submissionDeadline: new Date('2024-04-30T23:59:00Z'),
+        openDate: new Date('2024-03-15T08:00:00Z'),
+        status: 'OPEN',
+        priority: 'MEDIUM',
+        category: 'SUPPLY',
+        requirements: 'Authorized dealer for major brands, technical support team in Singapore, training included',
+        contactPerson: 'Michael Lim',
+        contactEmail: 'michael.lim@precision.sg',
+        contactPhone: '+65 6234 5678',
+        location: 'Tuas Industrial Park',
+        createdById: superAdmin.id,
+        assignedToId: projectManager.id,
+      },
+    }),
+    prisma.tender.create({
+      data: {
+        title: 'Building Construction Phase 2',
+        tenderNumber: 'TND-2024-006',
+        description: 'Commercial building construction with green building certification, 15-story office complex with basement parking.',
+        clientId: clients[2].id, // Global Logistics Ltd
+        estimatedValue: 5200000,
+        submissionDeadline: new Date('2024-03-25T17:00:00Z'),
+        openDate: new Date('2024-02-01T08:00:00Z'),
+        status: 'EXPIRED',
+        priority: 'HIGH',
+        category: 'CONSTRUCTION',
+        requirements: 'BCA A1 grade contractor, Green Mark Platinum experience, minimum $10M annual revenue',
+        contactPerson: 'Robert Ng',
+        contactEmail: 'robert.ng@metrodev.sg',
+        contactPhone: '+65 6654 3210',
+        location: 'Orchard Road',
+        createdById: superAdmin.id,
+      },
+    }),
+  ])
+
+  console.log('📋 Created sample tenders')
+
+  // Create tender activities
+  const tenderActivities = await Promise.all([
+    prisma.tenderActivity.create({
+      data: {
+        tenderId: tenders[0].id, // Smart City Infrastructure
+        action: 'Tender Created',
+        description: 'New tender opportunity identified and added to pipeline',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.tenderActivity.create({
+      data: {
+        tenderId: tenders[1].id, // Hospital HVAC
+        action: 'Status Changed',
+        description: 'Tender status updated from OPEN to SUBMITTED',
+        oldValue: 'OPEN',
+        newValue: 'SUBMITTED',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+    prisma.tenderActivity.create({
+      data: {
+        tenderId: tenders[2].id, // Industrial Automation
+        action: 'Tender Won',
+        description: 'Successfully won the tender! Project value: $450,000',
+        oldValue: 'SUBMITTED',
+        newValue: 'WON',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.tenderActivity.create({
+      data: {
+        tenderId: tenders[3].id, // Solar Panel
+        action: 'Tender Lost',
+        description: 'Unfortunately lost the tender to competitor. Reason: Price too high',
+        oldValue: 'SUBMITTED',
+        newValue: 'LOST',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+  ])
+
+  console.log('📝 Created tender activities')
+
+  // Create sample quotations with enhanced features
+  const quotations = await Promise.all([
+    // V1 - Smart City Infrastructure quotation
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q001',
+        version: 1,
+        title: 'Smart City Infrastructure - IoT Implementation',
+        description: 'Comprehensive quotation for IoT sensor installation and smart lighting implementation',
+        clientReference: 'REF-TI-2024-001',
+        tenderId: tenders[0].id, // Smart City Infrastructure
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        salespersonId: projectManager.id,
+        subtotal: 2300000,
+        taxAmount: 161000,
+        discountAmount: 0,
+        totalAmount: 2461000,
+        currency: 'SGD',
+        status: 'SENT',
+        validUntil: new Date('2024-04-30T23:59:00Z'),
+        terms: 'Payment terms: 30% upfront, 40% on delivery, 30% on completion. Validity: 45 days.',
+        notes: 'Includes 2-year warranty and 24/7 support for first year',
+        templateType: 'detailed',
+        approvalValue: 2461000,
+        requiresApproval: true,
+        createdById: projectManager.id,
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-05T14:30:00Z'),
+      },
+    }),
+
+    // V2 - Hospital HVAC System quotation (revised version)
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q002',
+        version: 2,
+        title: 'Hospital HVAC System Upgrade - Revised Proposal',
+        description: 'Detailed quotation for complete HVAC system replacement with energy efficiency upgrades (Revised)',
+        clientReference: 'REF-MC-HVAC-2024',
+        tenderId: tenders[1].id, // Hospital HVAC
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        salespersonId: financeUser.id,
+        subtotal: 1650000,
+        taxAmount: 115500,
+        discountAmount: 160500, // 10% discount applied
+        totalAmount: 1765500,
+        currency: 'SGD',
+        status: 'ACCEPTED',
+        validUntil: new Date('2024-04-15T23:59:00Z'),
+        terms: 'Payment terms: 20% upfront, 60% progressive payments, 20% on completion',
+        notes: 'Includes 5-year maintenance contract and emergency support. Revised pricing after negotiations.',
+        templateType: 'detailed',
+        approvalValue: 1765500,
+        requiresApproval: true,
+        createdById: financeUser.id,
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-20T16:45:00Z'),
+      },
+    }),
+
+    // V1 - Hospital HVAC System quotation (original, superseded version)
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q002',
+        version: 1,
+        title: 'Hospital HVAC System Upgrade - Original',
+        description: 'Detailed quotation for complete HVAC system replacement with energy efficiency upgrades',
+        clientReference: 'REF-MC-HVAC-2024',
+        tenderId: tenders[1].id, // Hospital HVAC
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        salespersonId: financeUser.id,
+        subtotal: 1800000,
+        taxAmount: 126000,
+        discountAmount: 0,
+        totalAmount: 1926000,
+        currency: 'SGD',
+        status: 'SUPERSEDED',
+        validUntil: new Date('2024-04-15T23:59:00Z'),
+        terms: 'Payment terms: 20% upfront, 60% progressive payments, 20% on completion',
+        notes: 'Includes 5-year maintenance contract and emergency support',
+        templateType: 'standard',
+        approvalValue: 1926000,
+        requiresApproval: true,
+        isSuperseded: true,
+        createdById: financeUser.id,
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-15T10:00:00Z'),
+      },
+    }),
+
+    // V1 - Industrial Automation quotation (converted to project)
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q003',
+        version: 1,
+        title: 'Industrial Automation Consulting Services',
+        description: 'Automation consulting and implementation services quotation',
+        clientReference: 'RFQ-GL-AUTO-2024',
+        tenderId: tenders[2].id, // Industrial Automation
+        clientId: clients[2].id, // Global Logistics Ltd
+        salespersonId: projectManager.id,
+        subtotal: 420000,
+        taxAmount: 29400,
+        discountAmount: 0,
+        totalAmount: 449400,
+        currency: 'SGD',
+        status: 'CONVERTED',
+        validUntil: new Date('2024-06-01T23:59:00Z'),
+        terms: 'Payment terms: 25% upfront, 50% on milestones, 25% on completion',
+        notes: 'Converted to project after successful tender award',
+        templateType: 'standard',
+        approvalValue: 0, // Under approval threshold
+        requiresApproval: false,
+        createdById: projectManager.id,
+        projectId: projects[2].id, // Factory Automation Upgrade
+      },
+    }),
+
+    // Draft quotation requiring approval
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q004',
+        version: 1,
+        title: 'Solar Panel Installation - Office Complex',
+        description: '200kW solar panel installation with grid-tie system and monitoring dashboard',
+        clientReference: 'REF-TI-SOLAR-2024',
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        salespersonId: financeUser.id,
+        subtotal: 285000,
+        taxAmount: 19950,
+        discountAmount: 0,
+        totalAmount: 304950,
+        currency: 'SGD',
+        status: 'DRAFT',
+        validUntil: new Date('2024-05-15T23:59:00Z'),
+        terms: 'Payment terms: 30% upfront, 40% on delivery, 30% on completion',
+        notes: 'Includes 10-year warranty on panels and 5-year warranty on inverters',
+        templateType: 'standard',
+        approvalValue: 304950,
+        requiresApproval: true,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Under review quotation
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q005',
+        version: 1,
+        title: 'Factory Equipment Supply & Installation',
+        description: 'Supply and installation of specialized manufacturing equipment including CNC machines and robotic arms',
+        clientReference: 'PO-MC-EQUIP-2024',
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        salespersonId: projectManager.id,
+        subtotal: 780000,
+        taxAmount: 54600,
+        discountAmount: 0,
+        totalAmount: 834600,
+        currency: 'SGD',
+        status: 'UNDER_REVIEW',
+        validUntil: new Date('2024-04-25T23:59:00Z'),
+        terms: 'Payment terms: 25% upfront, 50% on delivery, 25% on commissioning',
+        notes: 'Includes operator training and 2-year maintenance contract',
+        templateType: 'detailed',
+        approvalValue: 834600,
+        requiresApproval: true,
+        createdById: projectManager.id,
+      },
+    }),
+
+    // Rejected quotation
+    prisma.quotation.create({
+      data: {
+        quotationNumber: 'AE-Q006',
+        version: 1,
+        title: 'Building Management System Integration',
+        description: 'Integration of building management systems with IoT sensors and automated controls',
+        clientReference: 'RFQ-GL-BMS-2024',
+        clientId: clients[2].id, // Global Logistics Ltd
+        salespersonId: financeUser.id,
+        subtotal: 520000,
+        taxAmount: 36400,
+        discountAmount: 0,
+        totalAmount: 556400,
+        currency: 'SGD',
+        status: 'REJECTED',
+        validUntil: new Date('2024-04-20T23:59:00Z'),
+        terms: 'Payment terms: 30% upfront, 40% on progress, 30% on completion',
+        notes: 'Client selected competitor with lower pricing',
+        templateType: 'standard',
+        approvalValue: 556400,
+        requiresApproval: true,
+        createdById: financeUser.id,
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-28T09:15:00Z'),
+        rejectedById: superAdmin.id,
+        rejectedAt: new Date('2024-04-02T11:30:00Z'),
+        rejectionReason: 'Client selected competitor due to lower pricing',
+      },
+    }),
+  ])
+
+  console.log('💼 Created sample quotations')
+
+  // Create enhanced quotation items with categories, discounts, and tax
+  const quotationItems = await Promise.all([
+    // Items for Smart City Infrastructure quotation (QT-001)
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[0].id,
+        description: 'IoT Sensor Nodes (Temperature, Humidity, Air Quality)',
+        category: 'MATERIALS',
+        quantity: 500,
+        unitPrice: 850,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 425000,
+        discountAmount: 0,
+        taxAmount: 29750,
+        totalPrice: 454750,
+        unit: 'pcs',
+        notes: 'Industrial-grade sensors with 5-year warranty',
+        order: 1,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[0].id,
+        description: 'Smart LED Street Lighting System',
+        category: 'MATERIALS',
+        quantity: 200,
+        unitPrice: 1200,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 240000,
+        discountAmount: 12000,
+        taxAmount: 15960,
+        totalPrice: 243960,
+        unit: 'units',
+        notes: 'Energy-efficient LED with smart controls',
+        order: 2,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[0].id,
+        description: 'Central Management Platform & Dashboard',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 180000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 180000,
+        discountAmount: 0,
+        taxAmount: 12600,
+        totalPrice: 192600,
+        unit: 'system',
+        notes: 'Cloud-based management platform with mobile app',
+        order: 3,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[0].id,
+        description: 'Installation, Configuration & Testing',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 320000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 320000,
+        discountAmount: 0,
+        taxAmount: 22400,
+        totalPrice: 342400,
+        unit: 'project',
+        notes: 'Complete installation and system commissioning',
+        order: 4,
+      },
+    }),
+
+    // Items for Hospital HVAC quotation - V2 (QT-002 v2)
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[1].id,
+        description: 'HVAC Units (Central Air Handling Units)',
+        category: 'MATERIALS',
+        quantity: 6,
+        unitPrice: 120000,
+        discount: 8,
+        taxRate: 7,
+        subtotal: 720000,
+        discountAmount: 57600,
+        taxAmount: 46368,
+        totalPrice: 708768,
+        unit: 'units',
+        notes: 'High-efficiency units with variable speed drives',
+        order: 1,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[1].id,
+        description: 'Ductwork & Distribution System',
+        category: 'MATERIALS',
+        quantity: 1,
+        unitPrice: 380000,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 380000,
+        discountAmount: 19000,
+        taxAmount: 25270,
+        totalPrice: 386270,
+        unit: 'system',
+        notes: 'Insulated ductwork with VAV dampers',
+        order: 2,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[1].id,
+        description: 'Control Systems & Monitoring',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 150000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 150000,
+        discountAmount: 0,
+        taxAmount: 10500,
+        totalPrice: 160500,
+        unit: 'system',
+        notes: 'BMS integration with remote monitoring',
+        order: 3,
+      },
+    }),
+
+    // Items for Industrial Automation quotation (QT-003)
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[3].id, // Industrial Automation (index 3 = converted quotation)
+        description: 'Process Analysis & Optimization Consulting',
+        category: 'SERVICES',
+        quantity: 160,
+        unitPrice: 500,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 80000,
+        discountAmount: 0,
+        taxAmount: 5600,
+        totalPrice: 85600,
+        unit: 'hours',
+        notes: 'Senior consultant with lean manufacturing expertise',
+        order: 1,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[3].id,
+        description: 'PLC Programming & Configuration',
+        category: 'SERVICES',
+        quantity: 240,
+        unitPrice: 450,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 108000,
+        discountAmount: 0,
+        taxAmount: 7560,
+        totalPrice: 115560,
+        unit: 'hours',
+        notes: 'Siemens S7 and Allen-Bradley programming',
+        order: 2,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[3].id,
+        description: 'SCADA System Development',
+        category: 'SERVICES',
+        quantity: 190,
+        unitPrice: 420,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 79800,
+        discountAmount: 0,
+        taxAmount: 5586,
+        totalPrice: 85386,
+        unit: 'hours',
+        notes: 'WonderWare InTouch SCADA development',
+        order: 3,
+      },
+    }),
+
+    // Items for Solar Panel quotation (QT-004 - Draft)
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[4].id, // Solar Panel quotation
+        description: 'Solar Panels - Monocrystalline 400W',
+        category: 'MATERIALS',
+        quantity: 500,
+        unitPrice: 350,
+        discount: 10,
+        taxRate: 7,
+        subtotal: 175000,
+        discountAmount: 17500,
+        taxAmount: 11025,
+        totalPrice: 168525,
+        unit: 'pcs',
+        notes: 'Tier 1 solar panels with 25-year warranty',
+        order: 1,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[4].id,
+        description: 'Inverters & Electrical Components',
+        category: 'MATERIALS',
+        quantity: 1,
+        unitPrice: 45000,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 45000,
+        discountAmount: 2250,
+        taxAmount: 2992.5,
+        totalPrice: 45742.5,
+        unit: 'system',
+        notes: 'String inverters with monitoring system',
+        order: 2,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[4].id,
+        description: 'Installation & Grid Connection',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 85000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 85000,
+        discountAmount: 0,
+        taxAmount: 5950,
+        totalPrice: 90950,
+        unit: 'project',
+        notes: 'Complete installation and grid-tie connection',
+        order: 3,
+      },
+    }),
+
+    // Items for Factory Equipment quotation (QT-005 - Under Review)
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[5].id, // Factory Equipment quotation
+        description: 'CNC Machining Centers (3-axis)',
+        category: 'MATERIALS',
+        quantity: 3,
+        unitPrice: 180000,
+        discount: 12,
+        taxRate: 7,
+        subtotal: 540000,
+        discountAmount: 64800,
+        taxAmount: 33264,
+        totalPrice: 508464,
+        unit: 'machines',
+        notes: 'Haas VF-3 or equivalent with tooling package',
+        order: 1,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[5].id,
+        description: 'Robotic Arm & Integration',
+        category: 'MATERIALS',
+        quantity: 2,
+        unitPrice: 95000,
+        discount: 8,
+        taxRate: 7,
+        subtotal: 190000,
+        discountAmount: 15200,
+        taxAmount: 12236,
+        totalPrice: 187036,
+        unit: 'systems',
+        notes: 'ABB IRB 1200 with end effectors',
+        order: 2,
+      },
+    }),
+    prisma.quotationItem.create({
+      data: {
+        quotationId: quotations[5].id,
+        description: 'Installation & Training',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 75000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 75000,
+        discountAmount: 0,
+        taxAmount: 5250,
+        totalPrice: 80250,
+        unit: 'package',
+        notes: 'Complete installation and operator training',
+        order: 3,
+      },
+    }),
+  ])
+
+  console.log('📄 Created quotation items')
+
+  // Create sample quotation approvals
+  const quotationApprovals = await Promise.all([
+    // Approval for Smart City Infrastructure quotation
+    prisma.quotationApproval.create({
+      data: {
+        quotationId: quotations[0].id, // Smart City Infrastructure
+        approverId: superAdmin.id,
+        status: 'APPROVED',
+        comments: 'Approved for submission to client. Good technical proposal with competitive pricing.',
+        approvalLevel: 1,
+        approvedAt: new Date('2024-03-05T14:30:00Z'),
+      },
+    }),
+
+    // Approval for Hospital HVAC quotation v2
+    prisma.quotationApproval.create({
+      data: {
+        quotationId: quotations[1].id, // Hospital HVAC v2
+        approverId: superAdmin.id,
+        status: 'APPROVED',
+        comments: 'Revised quotation approved. Pricing adjustments are reasonable for securing the contract.',
+        approvalLevel: 1,
+        approvedAt: new Date('2024-03-20T16:45:00Z'),
+      },
+    }),
+
+    // Pending approval for Factory Equipment quotation
+    prisma.quotationApproval.create({
+      data: {
+        quotationId: quotations[5].id, // Factory Equipment
+        approverId: superAdmin.id,
+        status: 'PENDING',
+        comments: null,
+        approvalLevel: 1,
+      },
+    }),
+
+    // Approval for rejected Building Management System quotation
+    prisma.quotationApproval.create({
+      data: {
+        quotationId: quotations[6].id, // Building Management System
+        approverId: superAdmin.id,
+        status: 'APPROVED',
+        comments: 'Approved for submission. Technical approach is solid.',
+        approvalLevel: 1,
+        approvedAt: new Date('2024-03-28T09:15:00Z'),
+      },
+    }),
+  ])
+
+  console.log('✅ Created quotation approvals')
+
+  // Create sample quotation activities
+  const quotationActivities = await Promise.all([
+    // Activities for Smart City Infrastructure quotation
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[0].id,
+        action: 'Created',
+        description: 'Quotation created from tender TND-2024-001',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[0].id,
+        action: 'Submitted for Approval',
+        description: 'Quotation submitted for management approval',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[0].id,
+        action: 'Approved',
+        description: 'Quotation approved for client submission',
+        oldValue: 'SUBMITTED',
+        newValue: 'APPROVED',
+        userId: superAdmin.id,
+        userEmail: superAdmin.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[0].id,
+        action: 'Sent to Client',
+        description: 'Quotation sent to Tech Innovation Pte Ltd via email',
+        oldValue: 'APPROVED',
+        newValue: 'SENT',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+
+    // Activities for Hospital HVAC quotation v2
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[1].id,
+        action: 'Revision Created',
+        description: 'New version created based on client feedback and price negotiations',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[1].id,
+        action: 'Approved',
+        description: 'Revised quotation approved with adjusted pricing',
+        oldValue: 'SUBMITTED',
+        newValue: 'APPROVED',
+        userId: superAdmin.id,
+        userEmail: superAdmin.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[1].id,
+        action: 'Accepted by Client',
+        description: 'Client accepted the revised quotation. Ready for project conversion.',
+        oldValue: 'SENT',
+        newValue: 'ACCEPTED',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+
+    // Activities for Industrial Automation quotation (converted)
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[3].id,
+        action: 'Converted to Project',
+        description: 'Quotation successfully converted to project after client acceptance',
+        oldValue: 'ACCEPTED',
+        newValue: 'CONVERTED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+
+    // Activities for Factory Equipment quotation (under review)
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[5].id,
+        action: 'Created',
+        description: 'New quotation created for factory equipment supply',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[5].id,
+        action: 'Submitted for Approval',
+        description: 'Quotation submitted for management approval due to high value',
+        oldValue: 'DRAFT',
+        newValue: 'UNDER_REVIEW',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+
+    // Activities for rejected quotation
+    prisma.quotationActivity.create({
+      data: {
+        quotationId: quotations[6].id,
+        action: 'Rejected by Client',
+        description: 'Client selected competitor with lower pricing. Lost opportunity.',
+        oldValue: 'SENT',
+        newValue: 'REJECTED',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+  ])
+
+  console.log('📋 Created quotation activities')
+
+  // Create sample quotation templates
+  const quotationTemplates = await Promise.all([
+    prisma.quotationTemplate.create({
+      data: {
+        name: 'Standard Quotation Template',
+        templateType: 'standard',
+        description: 'Default template for most quotations with standard terms and conditions',
+        headerContent: 'AMPERE ENGINEERING PTE LTD\nQuotation for Professional Engineering Services',
+        footerContent: 'This quotation is valid for 30 days from the date of issue.',
+        termsConditions: `TERMS AND CONDITIONS:
+1. Prices quoted are in Singapore Dollars (SGD) and are valid for 30 days.
+2. Payment terms: 30% upon acceptance, 40% upon delivery, 30% upon completion.
+3. All prices are subject to 7% GST unless otherwise stated.
+4. Delivery timeline will be confirmed upon order confirmation.
+5. Standard warranty applies as per our terms of service.`,
+        isActive: true,
+        isDefault: true,
+        createdById: superAdmin.id,
+      },
+    }),
+    prisma.quotationTemplate.create({
+      data: {
+        name: 'Detailed Technical Quotation',
+        templateType: 'detailed',
+        description: 'Comprehensive template for complex technical proposals with detailed specifications',
+        headerContent: 'AMPERE ENGINEERING PTE LTD\nTechnical Proposal and Quotation',
+        footerContent: 'This comprehensive proposal includes detailed technical specifications and implementation methodology.',
+        termsConditions: `TERMS AND CONDITIONS:
+1. Prices quoted are in Singapore Dollars (SGD) and are valid for 45 days.
+2. Payment terms: 20% upon acceptance, 60% progressive billing, 20% upon final acceptance.
+3. All prices are subject to 7% GST unless otherwise stated.
+4. Technical specifications are subject to final engineering review.
+5. Extended warranty and maintenance support available.
+6. Project management and regular progress reporting included.`,
+        isActive: true,
+        isDefault: false,
+        createdById: superAdmin.id,
+      },
+    }),
+    prisma.quotationTemplate.create({
+      data: {
+        name: 'Summary Quotation Template',
+        templateType: 'summary',
+        description: 'Simplified template for quick quotations with minimal details',
+        headerContent: 'AMPERE ENGINEERING PTE LTD\nQuotation Summary',
+        footerContent: 'For detailed specifications and terms, please refer to our full proposal.',
+        termsConditions: `TERMS AND CONDITIONS:
+1. Prices quoted are in Singapore Dollars (SGD) and are valid for 15 days.
+2. Standard payment terms apply.
+3. All prices include applicable taxes.
+4. Subject to detailed terms and conditions in full contract.`,
+        isActive: true,
+        isDefault: false,
+        createdById: superAdmin.id,
+      },
+    }),
+  ])
+
+  console.log('📝 Created quotation templates')
+
+  // Create sample purchase orders
+  const purchaseOrders = await Promise.all([
+    // PO for Smart City Infrastructure project
+    prisma.purchaseOrder.create({
+      data: {
+        poNumber: 'PO-001-TS-20240215',
+        vendorId: vendors[0].id, // TechSupply Pte Ltd
+        projectId: projects[0].id, // Smart City Infrastructure
+        requesterId: projectManager.id,
+        subtotal: 450000,
+        taxAmount: 31500,
+        totalAmount: 481500,
+        currency: 'SGD',
+        status: 'COMPLETED',
+        issueDate: new Date('2024-02-15T08:00:00Z'),
+        deliveryDate: new Date('2024-03-15T17:00:00Z'),
+        terms: 'Net 30 days. Delivery within 4 weeks of PO issuance.',
+        notes: 'Bulk order for IoT sensors and networking equipment. Critical for project timeline.',
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-02-16T09:30:00Z'),
+        createdById: projectManager.id,
+      },
+    }),
+
+    // PO for Hospital HVAC project
+    prisma.purchaseOrder.create({
+      data: {
+        poNumber: 'PO-002-BM-20240301',
+        vendorId: vendors[1].id, // BuildMax Construction
+        projectId: projects[1].id, // Hospital HVAC System
+        requesterId: financeUser.id,
+        subtotal: 320000,
+        taxAmount: 22400,
+        totalAmount: 342400,
+        currency: 'SGD',
+        status: 'DELIVERED',
+        issueDate: new Date('2024-03-01T10:00:00Z'),
+        deliveryDate: new Date('2024-04-01T16:00:00Z'),
+        terms: 'Net 45 days. Installation to be completed within delivery timeline.',
+        notes: 'HVAC units and ductwork materials for hospital upgrade project.',
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-02T11:15:00Z'),
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Recent PO awaiting approval
+    prisma.purchaseOrder.create({
+      data: {
+        poNumber: 'PO-008-BM-20240329',
+        vendorId: vendors[1].id, // BuildMax Construction
+        projectId: projects[3].id, // Office Complex Renovation
+        requesterId: projectManager.id,
+        subtotal: 218000,
+        taxAmount: 15260,
+        totalAmount: 233260,
+        currency: 'SGD',
+        status: 'SUBMITTED',
+        issueDate: new Date('2024-03-29T14:00:00Z'),
+        deliveryDate: new Date('2024-04-30T17:00:00Z'),
+        terms: 'Net 30 days. Quality inspection required before acceptance.',
+        notes: 'Construction materials for office renovation phase 2. Urgent requirement.',
+        createdById: projectManager.id,
+      },
+    }),
+
+    // Engineering services PO
+    prisma.purchaseOrder.create({
+      data: {
+        poNumber: 'PO-005-ES-20240310',
+        vendorId: vendors[2].id, // Engineering Solutions Pte Ltd
+        projectId: projects[2].id, // Factory Automation Upgrade
+        requesterId: financeUser.id,
+        subtotal: 125000,
+        taxAmount: 8750,
+        totalAmount: 133750,
+        currency: 'SGD',
+        status: 'ISSUED',
+        issueDate: new Date('2024-03-10T09:00:00Z'),
+        deliveryDate: new Date('2024-04-15T17:00:00Z'),
+        terms: 'Net 60 days. Milestone-based delivery and invoicing.',
+        notes: 'Engineering consulting services for automation system design.',
+        approvedById: superAdmin.id,
+        approvedAt: new Date('2024-03-11T10:30:00Z'),
+        createdById: financeUser.id,
+      },
+    }),
+  ])
+
+  console.log('🛒 Created purchase orders')
+
+  // Create purchase order items
+  const purchaseOrderItems = await Promise.all([
+    // Items for Smart City Infrastructure PO
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        description: 'IoT Sensor Nodes - Temperature/Humidity/Air Quality',
+        category: 'MATERIALS',
+        quantity: 500,
+        unitPrice: 720,
+        discount: 8,
+        taxRate: 7,
+        subtotal: 360000,
+        discountAmount: 28800,
+        taxAmount: 23184,
+        totalPrice: 354384,
+        unit: 'pcs',
+        notes: 'Industrial grade sensors with 5-year warranty',
+        order: 1,
+      },
+    }),
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        description: 'Network Gateway Units',
+        category: 'MATERIALS',
+        quantity: 25,
+        unitPrice: 2800,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 70000,
+        discountAmount: 3500,
+        taxAmount: 4655,
+        totalPrice: 71155,
+        unit: 'units',
+        notes: '5G-capable gateway units for IoT network',
+        order: 2,
+      },
+    }),
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        description: 'Installation and Configuration Services',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 20000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 20000,
+        discountAmount: 0,
+        taxAmount: 1400,
+        totalPrice: 21400,
+        unit: 'project',
+        notes: 'On-site installation and system configuration',
+        order: 3,
+      },
+    }),
+
+    // Items for Hospital HVAC PO
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[1].id,
+        description: 'Central Air Handling Units',
+        category: 'MATERIALS',
+        quantity: 4,
+        unitPrice: 65000,
+        discount: 10,
+        taxRate: 7,
+        subtotal: 260000,
+        discountAmount: 26000,
+        taxAmount: 16380,
+        totalPrice: 250380,
+        unit: 'units',
+        notes: 'Hospital-grade HVAC units with HEPA filtration',
+        order: 1,
+      },
+    }),
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[1].id,
+        description: 'Ductwork and Fittings',
+        category: 'MATERIALS',
+        quantity: 1,
+        unitPrice: 60000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 60000,
+        discountAmount: 0,
+        taxAmount: 4200,
+        totalPrice: 64200,
+        unit: 'system',
+        notes: 'Insulated ductwork with antimicrobial coating',
+        order: 2,
+      },
+    }),
+
+    // Items for Office Complex PO (pending approval)
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[2].id,
+        description: 'Flooring Materials - Premium Vinyl',
+        category: 'MATERIALS',
+        quantity: 2500,
+        unitPrice: 65,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 162500,
+        discountAmount: 8125,
+        taxAmount: 10806.25,
+        totalPrice: 165181.25,
+        unit: 'sqft',
+        notes: 'Commercial grade vinyl flooring for office areas',
+        order: 1,
+      },
+    }),
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[2].id,
+        description: 'Ceiling Systems and Lighting',
+        category: 'MATERIALS',
+        quantity: 1,
+        unitPrice: 55500,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 55500,
+        discountAmount: 0,
+        taxAmount: 3885,
+        totalPrice: 59385,
+        unit: 'system',
+        notes: 'Suspended ceiling with integrated LED lighting',
+        order: 2,
+      },
+    }),
+
+    // Items for Engineering Services PO
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[3].id,
+        description: 'System Design and Engineering',
+        category: 'SERVICES',
+        quantity: 250,
+        unitPrice: 400,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 100000,
+        discountAmount: 0,
+        taxAmount: 7000,
+        totalPrice: 107000,
+        unit: 'hours',
+        notes: 'Senior engineering consultant for automation design',
+        order: 1,
+      },
+    }),
+    prisma.purchaseOrderItem.create({
+      data: {
+        purchaseOrderId: purchaseOrders[3].id,
+        description: 'Project Documentation and Handover',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 25000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 25000,
+        discountAmount: 0,
+        taxAmount: 1750,
+        totalPrice: 26750,
+        unit: 'package',
+        notes: 'Complete technical documentation and training',
+        order: 2,
+      },
+    }),
+  ])
+
+  console.log('📋 Created purchase order items')
+
+  // Create client invoices (from quotations and projects)
+  const clientInvoices = await Promise.all([
+    // Invoice from Smart City Infrastructure quotation
+    prisma.clientInvoice.create({
+      data: {
+        invoiceNumber: 'INV-001-TI-20240301',
+        projectId: projects[0].id, // Smart City Infrastructure
+        quotationId: quotations[0].id, // Smart City Infrastructure quotation
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        subtotal: 2300000,
+        taxAmount: 161000,
+        discountAmount: 0,
+        totalAmount: 2461000,
+        currency: 'SGD',
+        status: 'SENT',
+        issueDate: new Date('2024-03-01T09:00:00Z'),
+        dueDate: new Date('2024-04-15T23:59:00Z'),
+        description: 'Invoice for Smart City Infrastructure IoT Implementation - Phase 1',
+        terms: 'Payment terms: 30% upon acceptance, 40% upon delivery, 30% upon completion.',
+        notes: 'Milestone 1 billing: System design and procurement complete.',
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Invoice from Hospital HVAC quotation (accepted)
+    prisma.clientInvoice.create({
+      data: {
+        invoiceNumber: 'INV-002-MC-20240315',
+        projectId: projects[1].id, // Hospital HVAC System
+        quotationId: quotations[1].id, // Hospital HVAC quotation v2
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        subtotal: 1650000,
+        taxAmount: 115500,
+        discountAmount: 82500, // 5% early payment discount
+        totalAmount: 1683000,
+        currency: 'SGD',
+        status: 'PAID',
+        issueDate: new Date('2024-03-15T10:30:00Z'),
+        dueDate: new Date('2024-04-15T23:59:00Z'),
+        paidDate: new Date('2024-03-28T14:20:00Z'),
+        description: 'Hospital HVAC System Upgrade - Complete Installation',
+        terms: 'Payment terms: 20% upfront, 60% progressive payments, 20% upon completion.',
+        notes: 'Full project billing. Early payment discount applied. Thank you!',
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Invoice from converted quotation
+    prisma.clientInvoice.create({
+      data: {
+        invoiceNumber: 'INV-003-GL-20240318',
+        projectId: projects[2].id, // Factory Automation Upgrade
+        quotationId: quotations[3].id, // Industrial Automation quotation (converted)
+        clientId: clients[2].id, // Global Logistics Ltd
+        subtotal: 420000,
+        taxAmount: 29400,
+        discountAmount: 21000, // 5% project completion bonus
+        totalAmount: 428400,
+        currency: 'SGD',
+        status: 'SENT',
+        issueDate: new Date('2024-03-18T11:00:00Z'),
+        dueDate: new Date('2024-04-18T23:59:00Z'),
+        description: 'Factory Automation Upgrade - Consulting and Implementation Services',
+        terms: 'Payment terms: 25% upfront, 50% on milestones, 25% on completion.',
+        notes: 'Project milestone 2 billing: System implementation 80% complete.',
+        createdById: projectManager.id,
+      },
+    }),
+
+    // Recent invoice - overdue
+    prisma.clientInvoice.create({
+      data: {
+        invoiceNumber: 'INV-004-TI-20240325',
+        projectId: projects[3].id, // Office Complex Renovation
+        clientId: clients[0].id, // Tech Innovation Pte Ltd
+        subtotal: 145600,
+        taxAmount: 10192,
+        discountAmount: 0,
+        totalAmount: 155792,
+        currency: 'SGD',
+        status: 'OVERDUE',
+        issueDate: new Date('2024-03-25T15:30:00Z'),
+        dueDate: new Date('2024-04-10T23:59:00Z'),
+        description: 'Office Complex Renovation - Phase 1 Materials and Labor',
+        terms: 'Payment terms: Net 15 days from invoice date.',
+        notes: 'OVERDUE: Payment required immediately to avoid project delays.',
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Draft invoice for new project milestone
+    prisma.clientInvoice.create({
+      data: {
+        invoiceNumber: 'INV-005-MC-20240329',
+        projectId: projects[1].id, // Hospital HVAC System
+        clientId: clients[1].id, // Manufacturing Corp Pte Ltd
+        subtotal: 387500,
+        taxAmount: 27125,
+        discountAmount: 0,
+        totalAmount: 414625,
+        currency: 'SGD',
+        status: 'DRAFT',
+        issueDate: new Date('2024-03-29T09:00:00Z'),
+        dueDate: new Date('2024-04-29T23:59:00Z'),
+        description: 'Hospital HVAC System - Maintenance Services Annual Contract',
+        terms: 'Payment terms: Annual payment due within 30 days.',
+        notes: 'Annual maintenance contract as per project agreement.',
+        createdById: financeUser.id,
+      },
+    }),
+  ])
+
+  console.log('💰 Created client invoices')
+
+  // Create client invoice items
+  const clientInvoiceItems = await Promise.all([
+    // Items for Smart City Infrastructure invoice
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[0].id,
+        description: 'IoT Sensor Network Implementation - Phase 1',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 1200000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 1200000,
+        discountAmount: 0,
+        taxAmount: 84000,
+        totalPrice: 1284000,
+        unit: 'milestone',
+        notes: 'System design, procurement, and initial deployment',
+        order: 1,
+      },
+    }),
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[0].id,
+        description: 'Smart LED Lighting System Installation',
+        category: 'SERVICES',
+        quantity: 200,
+        unitPrice: 1200,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 240000,
+        discountAmount: 0,
+        taxAmount: 16800,
+        totalPrice: 256800,
+        unit: 'units',
+        notes: 'Energy-efficient LED street lighting with smart controls',
+        order: 2,
+      },
+    }),
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[0].id,
+        description: 'Central Management Platform Setup',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 860000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 860000,
+        discountAmount: 0,
+        taxAmount: 60200,
+        totalPrice: 920200,
+        unit: 'system',
+        notes: 'Cloud-based management platform with mobile app',
+        order: 3,
+      },
+    }),
+
+    // Items for Hospital HVAC invoice (paid)
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[1].id,
+        description: 'HVAC System Complete Installation',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 1650000,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 1650000,
+        discountAmount: 82500,
+        taxAmount: 109725,
+        totalPrice: 1677225,
+        unit: 'project',
+        notes: 'Complete HVAC system upgrade including commissioning',
+        order: 1,
+      },
+    }),
+
+    // Items for Factory Automation invoice
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[2].id,
+        description: 'Process Analysis & System Design',
+        category: 'SERVICES',
+        quantity: 160,
+        unitPrice: 1500,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 240000,
+        discountAmount: 12000,
+        taxAmount: 15960,
+        totalPrice: 243960,
+        unit: 'hours',
+        notes: 'Senior consultant with lean manufacturing expertise',
+        order: 1,
+      },
+    }),
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[2].id,
+        description: 'Automation System Implementation',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 180000,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 180000,
+        discountAmount: 9000,
+        taxAmount: 11970,
+        totalPrice: 182970,
+        unit: 'system',
+        notes: 'PLC programming and SCADA development',
+        order: 2,
+      },
+    }),
+
+    // Items for overdue office renovation invoice
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[3].id,
+        description: 'Office Space Preparation and Demolition',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 85600,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 85600,
+        discountAmount: 0,
+        taxAmount: 5992,
+        totalPrice: 91592,
+        unit: 'project',
+        notes: 'Preparation work for office renovation phase 1',
+        order: 1,
+      },
+    }),
+    prisma.clientInvoiceItem.create({
+      data: {
+        clientInvoiceId: clientInvoices[3].id,
+        description: 'Materials and Basic Construction',
+        category: 'MATERIALS',
+        quantity: 1,
+        unitPrice: 60000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 60000,
+        discountAmount: 0,
+        taxAmount: 4200,
+        totalPrice: 64200,
+        unit: 'package',
+        notes: 'Basic construction materials and labor',
+        order: 2,
+      },
+    }),
+  ])
+
+  console.log('📄 Created client invoice items')
+
+  // Create vendor invoices
+  const vendorInvoices = await Promise.all([
+    // Vendor invoice from TechSupply matching PO-001
+    prisma.vendorInvoice.create({
+      data: {
+        invoiceNumber: 'VINV-001-TS-20240305',
+        vendorInvoiceRef: 'TS-INV-2024-0156',
+        vendorId: vendors[0].id, // TechSupply Pte Ltd
+        projectId: projects[0].id, // Smart City Infrastructure
+        purchaseOrderId: purchaseOrders[0].id, // PO-001-TS-20240215
+        subtotal: 450000,
+        taxAmount: 31500,
+        totalAmount: 481500,
+        currency: 'SGD',
+        status: 'PAID',
+        invoiceDate: new Date('2024-03-05T10:00:00Z'),
+        dueDate: new Date('2024-04-05T23:59:00Z'),
+        receivedDate: new Date('2024-03-05T14:30:00Z'),
+        approvedDate: new Date('2024-03-08T11:15:00Z'),
+        paidDate: new Date('2024-03-25T16:45:00Z'),
+        description: 'IoT sensors and networking equipment as per PO-001-TS-20240215',
+        notes: 'Invoice matches PO exactly. Equipment delivered and installed successfully.',
+        documentPath: '/nas/ampere/finance/vendor_invoices/techsupply/VINV-001-TS-20240305.pdf',
+        projectApprovalRequired: true,
+        projectApprovedById: projectManager.id,
+        projectApprovedAt: new Date('2024-03-07T09:30:00Z'),
+        financeApprovedById: financeUser.id,
+        financeApprovedAt: new Date('2024-03-08T11:15:00Z'),
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Vendor invoice from BuildMax - overdue payment
+    prisma.vendorInvoice.create({
+      data: {
+        invoiceNumber: 'VINV-002-BM-20240312',
+        vendorInvoiceRef: 'BM-2024-0089',
+        vendorId: vendors[1].id, // BuildMax Construction
+        projectId: projects[1].id, // Hospital HVAC System
+        purchaseOrderId: purchaseOrders[1].id, // PO-002-BM-20240301
+        subtotal: 320000,
+        taxAmount: 22400,
+        totalAmount: 342400,
+        currency: 'SGD',
+        status: 'APPROVED',
+        invoiceDate: new Date('2024-03-12T11:00:00Z'),
+        dueDate: new Date('2024-04-26T23:59:00Z'),
+        receivedDate: new Date('2024-03-12T15:20:00Z'),
+        approvedDate: new Date('2024-03-18T13:45:00Z'),
+        description: 'HVAC units and ductwork as per PO-002-BM-20240301',
+        notes: 'Materials delivered on time. Installation completed successfully. Payment due.',
+        documentPath: '/nas/ampere/finance/vendor_invoices/buildmax/VINV-002-BM-20240312.pdf',
+        projectApprovalRequired: true,
+        projectApprovedById: financeUser.id,
+        projectApprovedAt: new Date('2024-03-15T10:00:00Z'),
+        financeApprovedById: superAdmin.id,
+        financeApprovedAt: new Date('2024-03-18T13:45:00Z'),
+        createdById: projectManager.id,
+      },
+    }),
+
+    // Vendor invoice awaiting approval
+    prisma.vendorInvoice.create({
+      data: {
+        invoiceNumber: 'VINV-003-ES-20240320',
+        vendorInvoiceRef: 'ES-INV-2024-0034',
+        vendorId: vendors[2].id, // Engineering Solutions Pte Ltd
+        projectId: projects[2].id, // Factory Automation Upgrade
+        purchaseOrderId: purchaseOrders[3].id, // PO-005-ES-20240310
+        subtotal: 125000,
+        taxAmount: 8750,
+        totalAmount: 133750,
+        currency: 'SGD',
+        status: 'PENDING_FINANCE_APPROVAL',
+        invoiceDate: new Date('2024-03-20T09:30:00Z'),
+        dueDate: new Date('2024-05-19T23:59:00Z'),
+        receivedDate: new Date('2024-03-20T14:15:00Z'),
+        description: 'Engineering consulting services - Phase 1 milestone',
+        notes: 'Awaiting finance approval. Project milestone completed as agreed.',
+        documentPath: '/nas/ampere/finance/vendor_invoices/engineering_solutions/VINV-003-ES-20240320.pdf',
+        projectApprovalRequired: true,
+        projectApprovedById: projectManager.id,
+        projectApprovedAt: new Date('2024-03-22T11:30:00Z'),
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Recent vendor invoice - pending project approval
+    prisma.vendorInvoice.create({
+      data: {
+        invoiceNumber: 'VINV-004-BM-20240328',
+        vendorInvoiceRef: 'BM-2024-0095',
+        vendorId: vendors[1].id, // BuildMax Construction
+        projectId: projects[3].id, // Office Complex Renovation
+        subtotal: 189700,
+        taxAmount: 13279,
+        totalAmount: 202979,
+        currency: 'SGD',
+        status: 'PENDING_PROJECT_APPROVAL',
+        invoiceDate: new Date('2024-03-28T10:45:00Z'),
+        dueDate: new Date('2024-04-28T23:59:00Z'),
+        receivedDate: new Date('2024-03-28T16:30:00Z'),
+        description: 'Office renovation materials and initial construction work',
+        notes: 'Invoice for renovation phase 1. Awaiting project manager verification.',
+        documentPath: '/nas/ampere/finance/vendor_invoices/buildmax/VINV-004-BM-20240328.pdf',
+        projectApprovalRequired: true,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // AI-processed vendor invoice with extracted data
+    prisma.vendorInvoice.create({
+      data: {
+        invoiceNumber: 'VINV-005-TS-20240330',
+        vendorInvoiceRef: 'TS-INV-2024-0187',
+        vendorId: vendors[0].id, // TechSupply Pte Ltd
+        projectId: projects[0].id, // Smart City Infrastructure
+        subtotal: 75600,
+        taxAmount: 5292,
+        totalAmount: 80892,
+        currency: 'SGD',
+        status: 'RECEIVED',
+        invoiceDate: new Date('2024-03-30T08:00:00Z'),
+        dueDate: new Date('2024-04-30T23:59:00Z'),
+        receivedDate: new Date('2024-03-30T12:45:00Z'),
+        description: 'Additional IoT sensors and replacement parts',
+        notes: 'AI-processed invoice. Data extracted automatically. Awaiting review.',
+        documentPath: '/nas/ampere/finance/vendor_invoices/techsupply/VINV-005-TS-20240330.pdf',
+        projectApprovalRequired: true,
+        createdById: financeUser.id,
+      },
+    }),
+  ])
+
+  console.log('🧾 Created vendor invoices')
+
+  // Create vendor invoice items
+  const vendorInvoiceItems = await Promise.all([
+    // Items for TechSupply invoice (paid)
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        description: 'IoT Sensor Nodes - Temperature/Humidity/Air Quality',
+        category: 'MATERIALS',
+        quantity: 500,
+        unitPrice: 720,
+        discount: 8,
+        taxRate: 7,
+        subtotal: 360000,
+        discountAmount: 28800,
+        taxAmount: 23184,
+        totalPrice: 354384,
+        unit: 'pcs',
+        notes: 'Industrial grade sensors with 5-year warranty',
+        order: 1,
+      },
+    }),
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        description: 'Network Gateway Units',
+        category: 'MATERIALS',
+        quantity: 25,
+        unitPrice: 2800,
+        discount: 5,
+        taxRate: 7,
+        subtotal: 70000,
+        discountAmount: 3500,
+        taxAmount: 4655,
+        totalPrice: 71155,
+        unit: 'units',
+        notes: '5G-capable gateway units for IoT network',
+        order: 2,
+      },
+    }),
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        description: 'Installation and Setup Services',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 20000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 20000,
+        discountAmount: 0,
+        taxAmount: 1400,
+        totalPrice: 21400,
+        unit: 'project',
+        notes: 'On-site installation and configuration',
+        order: 3,
+      },
+    }),
+
+    // Items for BuildMax invoice (approved)
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[1].id,
+        description: 'Central Air Handling Units',
+        category: 'MATERIALS',
+        quantity: 4,
+        unitPrice: 65000,
+        discount: 10,
+        taxRate: 7,
+        subtotal: 260000,
+        discountAmount: 26000,
+        taxAmount: 16380,
+        totalPrice: 250380,
+        unit: 'units',
+        notes: 'Hospital-grade HVAC units with HEPA filtration',
+        order: 1,
+      },
+    }),
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[1].id,
+        description: 'Ductwork and Installation',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 60000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 60000,
+        discountAmount: 0,
+        taxAmount: 4200,
+        totalPrice: 64200,
+        unit: 'system',
+        notes: 'Complete ductwork installation with insulation',
+        order: 2,
+      },
+    }),
+
+    // Items for Engineering Solutions invoice (pending approval)
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[2].id,
+        description: 'System Design and Engineering Services',
+        category: 'SERVICES',
+        quantity: 250,
+        unitPrice: 400,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 100000,
+        discountAmount: 0,
+        taxAmount: 7000,
+        totalPrice: 107000,
+        unit: 'hours',
+        notes: 'Senior engineering consultant - automation design',
+        order: 1,
+      },
+    }),
+    prisma.vendorInvoiceItem.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[2].id,
+        description: 'Technical Documentation',
+        category: 'SERVICES',
+        quantity: 1,
+        unitPrice: 25000,
+        discount: 0,
+        taxRate: 7,
+        subtotal: 25000,
+        discountAmount: 0,
+        taxAmount: 1750,
+        totalPrice: 26750,
+        unit: 'package',
+        notes: 'Complete system documentation and specifications',
+        order: 2,
+      },
+    }),
+  ])
+
+  console.log('📋 Created vendor invoice items')
+
+  // Create payments
+  const payments = await Promise.all([
+    // Payment received from Tech Innovation for Smart City Infrastructure
+    prisma.payment.create({
+      data: {
+        paymentNumber: 'PAY-001-TI-20240328',
+        clientInvoiceId: clientInvoices[0].id, // INV-001-TI-20240301
+        amount: 738300, // 30% of total invoice (first milestone payment)
+        currency: 'SGD',
+        paymentMethod: 'BANK_TRANSFER',
+        paymentDate: new Date('2024-03-28T10:30:00Z'),
+        reference: 'TI-BT-20240328-001',
+        notes: 'First milestone payment - 30% as per agreement',
+        status: 'COMPLETED',
+        processedById: financeUser.id,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Full payment received from Manufacturing Corp
+    prisma.payment.create({
+      data: {
+        paymentNumber: 'PAY-002-MC-20240328',
+        clientInvoiceId: clientInvoices[1].id, // INV-002-MC-20240315 (paid invoice)
+        amount: 1683000, // Full payment with early payment discount
+        currency: 'SGD',
+        paymentMethod: 'BANK_TRANSFER',
+        paymentDate: new Date('2024-03-28T14:20:00Z'),
+        reference: 'MC-WIRE-20240328-HVAC',
+        notes: 'Full payment for Hospital HVAC project. Early payment discount applied.',
+        status: 'COMPLETED',
+        processedById: financeUser.id,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Partial payment from Global Logistics
+    prisma.payment.create({
+      data: {
+        paymentNumber: 'PAY-003-GL-20240325',
+        clientInvoiceId: clientInvoices[2].id, // INV-003-GL-20240318
+        amount: 107100, // 25% upfront payment
+        currency: 'SGD',
+        paymentMethod: 'BANK_TRANSFER',
+        paymentDate: new Date('2024-03-25T16:15:00Z'),
+        reference: 'GL-ACH-20240325-AUTO',
+        notes: '25% upfront payment for Factory Automation project',
+        status: 'COMPLETED',
+        processedById: financeUser.id,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Payment sent to TechSupply
+    prisma.payment.create({
+      data: {
+        paymentNumber: 'PAY-004-TS-20240325',
+        vendorInvoiceId: vendorInvoices[0].id, // VINV-001-TS-20240305 (paid vendor invoice)
+        amount: 481500, // Full payment to TechSupply
+        currency: 'SGD',
+        paymentMethod: 'BANK_TRANSFER',
+        paymentDate: new Date('2024-03-25T16:45:00Z'),
+        reference: 'AMPE-OUT-20240325-TS001',
+        notes: 'Payment for IoT sensors and network equipment - PO-001-TS-20240215',
+        status: 'COMPLETED',
+        processedById: financeUser.id,
+        createdById: financeUser.id,
+      },
+    }),
+
+    // Pending payment to BuildMax
+    prisma.payment.create({
+      data: {
+        paymentNumber: 'PAY-005-BM-20240330',
+        vendorInvoiceId: vendorInvoices[1].id, // VINV-002-BM-20240312 (approved vendor invoice)
+        amount: 342400, // Full payment to BuildMax
+        currency: 'SGD',
+        paymentMethod: 'BANK_TRANSFER',
+        paymentDate: new Date('2024-03-30T09:00:00Z'),
+        reference: 'AMPE-OUT-20240330-BM002',
+        notes: 'Payment for HVAC materials and installation - PO-002-BM-20240301',
+        status: 'PROCESSING',
+        processedById: financeUser.id,
+        createdById: financeUser.id,
+      },
+    }),
+  ])
+
+  console.log('💳 Created payments')
+
+  // Create purchase order activities
+  const purchaseOrderActivities = await Promise.all([
+    // Activities for completed PO
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id, // PO-001-TS-20240215
+        action: 'Created',
+        description: 'Purchase Order created for IoT sensors and network equipment',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        action: 'Approved',
+        description: 'Purchase Order approved by management',
+        oldValue: 'SUBMITTED',
+        newValue: 'APPROVED',
+        userId: superAdmin.id,
+        userEmail: superAdmin.email,
+      },
+    }),
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        action: 'Issued',
+        description: 'Purchase Order sent to vendor TechSupply Pte Ltd',
+        oldValue: 'APPROVED',
+        newValue: 'ISSUED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        action: 'Delivered',
+        description: 'Equipment delivered and installed on site',
+        oldValue: 'ISSUED',
+        newValue: 'DELIVERED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[0].id,
+        action: 'Completed',
+        description: 'Purchase Order completed successfully. All items delivered and accepted.',
+        oldValue: 'DELIVERED',
+        newValue: 'COMPLETED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+
+    // Activities for pending approval PO
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[2].id, // PO-008-BM-20240329 (pending approval)
+        action: 'Created',
+        description: 'Purchase Order created for office renovation materials',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.purchaseOrderActivity.create({
+      data: {
+        purchaseOrderId: purchaseOrders[2].id,
+        action: 'Submitted for Approval',
+        description: 'Purchase Order submitted for management approval - value exceeds limit',
+        oldValue: 'DRAFT',
+        newValue: 'SUBMITTED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+  ])
+
+  console.log('📋 Created purchase order activities')
+
+  // Create vendor invoice activities
+  const vendorInvoiceActivities = await Promise.all([
+    // Activities for paid vendor invoice
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id, // VINV-001-TS-20240305 (paid)
+        action: 'Received',
+        description: 'Vendor invoice received from TechSupply Pte Ltd',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        action: 'Project Approved',
+        description: 'Invoice approved by project manager - matches PO and delivery',
+        oldValue: 'RECEIVED',
+        newValue: 'PROJECT_APPROVED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        action: 'Finance Approved',
+        description: 'Invoice approved by finance for payment',
+        oldValue: 'PROJECT_APPROVED',
+        newValue: 'APPROVED',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[0].id,
+        action: 'Paid',
+        description: 'Payment processed to vendor via bank transfer',
+        oldValue: 'APPROVED',
+        newValue: 'PAID',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+
+    // Activities for pending approval vendor invoice
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[2].id, // VINV-003-ES-20240320 (pending finance approval)
+        action: 'Received',
+        description: 'Vendor invoice received from Engineering Solutions Pte Ltd',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[2].id,
+        action: 'Project Approved',
+        description: 'Invoice approved by project manager - milestone completed',
+        oldValue: 'RECEIVED',
+        newValue: 'PROJECT_APPROVED',
+        userId: projectManager.id,
+        userEmail: projectManager.email,
+      },
+    }),
+
+    // Activities for AI-processed invoice
+    prisma.vendorInvoiceActivity.create({
+      data: {
+        vendorInvoiceId: vendorInvoices[4].id, // VINV-005-TS-20240330 (AI processed)
+        action: 'AI Processed',
+        description: 'Invoice data extracted automatically using AI document processing',
+        userId: financeUser.id,
+        userEmail: financeUser.email,
+      },
+    }),
+  ])
+
+  console.log('📋 Created vendor invoice activities')
+
+  // Create Xero sync logs (mock integration)
+  const xeroSyncLogs = await Promise.all([
+    // Successful client invoice sync
+    prisma.xeroSyncLog.create({
+      data: {
+        entity: 'client_invoice',
+        entityId: clientInvoices[0].id,
+        syncType: 'push',
+        status: 'success',
+        xeroId: 'xero-inv-2024-001-ti',
+        requestData: {
+          InvoiceNumber: 'INV-001-TI-20240301',
+          Contact: 'Tech Innovation Pte Ltd',
+          Date: '2024-03-01',
+          DueDate: '2024-04-15',
+          Total: 2461000
+        },
+        responseData: {
+          invoiceId: 'xero-inv-2024-001-ti',
+          status: 'AUTHORISED',
+          validationErrors: []
+        },
+      },
+    }),
+
+    // Failed vendor invoice sync
+    prisma.xeroSyncLog.create({
+      data: {
+        entity: 'vendor_invoice',
+        entityId: vendorInvoices[0].id,
+        syncType: 'push',
+        status: 'failed',
+        errorMessage: 'Contact not found in Xero - TechSupply Pte Ltd',
+        requestData: {
+          InvoiceNumber: 'VINV-001-TS-20240305',
+          Contact: 'TechSupply Pte Ltd',
+          Date: '2024-03-05',
+          Total: 481500
+        },
+      },
+    }),
+
+    // Successful payment sync
+    prisma.xeroSyncLog.create({
+      data: {
+        entity: 'payment',
+        entityId: payments[0].id,
+        syncType: 'push',
+        status: 'success',
+        xeroId: 'xero-payment-2024-001',
+        requestData: {
+          PaymentNumber: 'PAY-001-TI-20240328',
+          Account: 'Business Bank Account',
+          Date: '2024-03-28',
+          Amount: 738300
+        },
+        responseData: {
+          paymentId: 'xero-payment-2024-001',
+          status: 'AUTHORISED',
+          bankTransactionId: 'xero-bt-2024-001'
+        },
+      },
+    }),
+  ])
+
+  console.log('🔄 Created Xero sync logs')
+
+  // Legacy invoice creation for backward compatibility
+  const legacyInvoices = await Promise.all([
+    prisma.legacyInvoice.create({
+      data: {
+        invoiceNumber: 'LEGACY-INV-2024-001',
+        description: 'IoT Implementation - Hardware procurement and initial setup for smart building IoT sensors and gateway devices',
+        amount: 125000,
+        taxAmount: 8750,
+        totalAmount: 133750,
+        status: 'PAID',
+        issueDate: new Date('2024-02-01'),
+        dueDate: new Date('2024-03-03'),
+        clientId: clients[0].id,
+        projectId: projects[0].id,
+        createdById: financeUser.id,
+      },
+    }),
+  ])
+
+  console.log('💰 Created legacy invoices')
+
+  // Create some sample audit logs
+  await prisma.auditLog.create({
+    data: {
+      action: 'CREATE',
+      entityType: 'CLIENT',
+      entityId: clients[0].id,
+      newValues: {
+        name: clients[0].name,
+        email: clients[0].email,
+      },
+      userId: superAdmin.id,
+      userEmail: superAdmin.email,
+      ipAddress: '192.168.1.100',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    },
+  })
+
+  await prisma.auditLog.create({
+    data: {
+      action: 'UPDATE',
+      entityType: 'PROJECT',
+      entityId: projects[0].id,
+      oldValues: { progress: 70 },
+      newValues: { progress: 75 },
+      userId: projectManager.id,
+      userEmail: projectManager.email,
+      ipAddress: '192.168.1.101',
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    },
+  })
+
+  console.log('📝 Created sample audit logs')
+
+  console.log('🎉 Database seeding completed successfully!')
+  console.log('\n📋 Test Accounts Created:')
+  console.log('┌─────────────────────────────────────────────────────────┐')
+  console.log('│                    TEST ACCOUNTS                        │')
+  console.log('├─────────────────────────────────────────────────────────┤')
+  console.log('│ SuperAdmin:     zack@ampere.engineering                 │')
+  console.log('│ Password:       Czl914816                               │')
+  console.log('│ SuperAdmin:     endy@ampere.engineering                 │')
+  console.log('│ Password:       Endy548930                              │')
+  console.log('│ Project Manager: pm@ampere.engineering                  │')
+  console.log('│ Finance:        finance@ampere.engineering              │')
+  console.log('│ Password (PM/Finance): password123                      │')
+  console.log('└─────────────────────────────────────────────────────────┘')
+  console.log('\n📋 Vendor Portal Accounts:')
+  console.log('┌─────────────────────────────────────────────────────────┐')
+  console.log('│                VENDOR PORTAL USERS                      │')
+  console.log('├─────────────────────────────────────────────────────────┤')
+  console.log('│ TechSupply:     david.tan@techsupply.sg                 │')
+  console.log('│ BuildMax:       sarah.lim@buildmax.com.sg               │')
+  console.log('│ Password (all): password123                             │')
+  console.log('└─────────────────────────────────────────────────────────┘')
+  console.log('\n📊 Sample Data Created:')
+  console.log(`• ${clients.length} Clients`)
+  console.log(`• ${vendors.length} Vendors`)
+  console.log(`• ${projects.length} Projects`)
+  console.log(`• ${projectVendors.length} Project-Vendor Relationships`)
+  console.log(`• ${tenders.length} Tenders`)
+  console.log(`• ${tenderActivities.length} Tender Activities`)
+  console.log(`• ${quotations.length} Quotations (with versioning)`)
+  console.log(`• ${quotationItems.length} Quotation Line Items`)
+  console.log(`• ${quotationApprovals.length} Quotation Approvals`)
+  console.log(`• ${quotationActivities.length} Quotation Activities`)
+  console.log(`• ${quotationTemplates.length} Quotation Templates`)
+  console.log('\n💰 Financial Data Created:')
+  console.log(`• ${purchaseOrders.length} Purchase Orders`)
+  console.log(`• ${purchaseOrderItems.length} Purchase Order Items`)
+  console.log(`• ${clientInvoices.length} Client Invoices`)
+  console.log(`• ${clientInvoiceItems.length} Client Invoice Items`)
+  console.log(`• ${vendorInvoices.length} Vendor Invoices`)
+  console.log(`• ${vendorInvoiceItems.length} Vendor Invoice Items`)
+  console.log(`• ${payments.length} Payment Transactions`)
+  console.log(`• ${purchaseOrderActivities.length} Purchase Order Activities`)
+  console.log(`• ${vendorInvoiceActivities.length} Vendor Invoice Activities`)
+  console.log(`• ${xeroSyncLogs.length} Xero Sync Logs`)
+  console.log(`• ${legacyInvoices.length} Legacy Invoice (backward compatibility)`)
+  console.log('• 2 Audit Log Entries')
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Error during seeding:')
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

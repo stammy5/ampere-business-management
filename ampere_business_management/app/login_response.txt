@@ -1,0 +1,1 @@
+{"success":true,"user":{"id":"4b37c494-7a15-4996-8b50-c197988d913b","email":"zack","name":"Zack","role":"SUPERADMIN","firstName":"Zack","lastName":"Admin","companyName":"Ampere Engineering Pte Ltd"},"redirectUrl":"/dashboard"}HTTP Status: 200
